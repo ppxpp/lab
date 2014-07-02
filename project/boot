@@ -1,0 +1,515 @@
+REQ: curl -i http://192.168.0.1:5000/v2.0/tokens 
+-X POST 
+-H "Content-Type: application/json" 
+-H "Accept: application/json" 
+-H "User-Agent: python-novaclient" 
+-d '{"auth": {"tenantName": "admin", "passwordCredentials": {"username": "admin", "password": "admin"}}}'
+
+INFO (connectionpool:202) Starting new HTTP connection (1): 192.168.0.1
+DEBUG (connectionpool:296) "POST /v2.0/tokens HTTP/1.1" 200 2524
+RESP: [200] CaseInsensitiveDict({'date': 'Fri, 27 Jun 2014 01:50:23 GMT', 'vary': 'X-Auth-Token', 'content-length': '2524', 'content-type': 'application/json'})
+RESP BODY: 
+{
+	"access": {
+		"token": {
+			"issued_at": "2014-06-27T01:50:23.834817", 
+			"expires": "2014-06-28T01:50:23Z", 
+			"id": "6d25bb310e2940f79772a47f319706fc", 
+			"tenant": {
+				"description": "admin tenant", 
+				"enabled": true, 
+				"id": "5114c16c3e2d496281c79b2a2ee67910", 
+				"name": "admin"
+			}
+		}, 
+		"serviceCatalog": [
+			{"endpoints": [{
+				"adminURL": "http://192.168.0.1:8774/v2/5114c16c3e2d496281c79b2a2ee67910", 
+				"region": "RegionOne", 
+				"internalURL": "http://192.168.0.1:8774/v2/5114c16c3e2d496281c79b2a2ee67910", 
+				"id": "48ddddc9e3214796a9510e17c95abc7e", 
+				"publicURL": "http://172.16.0.2:8774/v2/5114c16c3e2d496281c79b2a2ee67910"
+			}], 
+			"endpoints_links": [], 
+			"type": "compute", 
+			"name": "nova"}, 
+			{"endpoints": [{
+				"adminURL": "http://192.168.0.1:9292", 
+				"region": "RegionOne", 
+				"internalURL": "http://192.168.0.1:9292", 
+				"id": "03863fd79d7c41e289bd517226d81632", 
+				"publicURL": "http://172.16.0.2:9292"
+			}], 
+			"endpoints_links": [], 
+			"type": "image", 
+			"name": "glance"}, 
+			{"endpoints": [{
+				"adminURL": "http://192.168.0.1:8776/v1/5114c16c3e2d496281c79b2a2ee67910", 
+				"region": "RegionOne", 
+				"internalURL": "http://192.168.0.1:8776/v1/5114c16c3e2d496281c79b2a2ee67910", 
+				"id": "b4e38137917d4159bfe1b9ea4d2d32b4", 
+				"publicURL": "http://172.16.0.2:8776/v1/5114c16c3e2d496281c79b2a2ee67910"
+			}], 
+			"endpoints_links": [], 
+			"type": "volume", 
+			"name": "cinder"}, 
+			{
+				"endpoints": [{
+					"adminURL": "http://192.168.0.1:8773/services/Admin", 
+					"region": "RegionOne", 
+					"internalURL": "http://192.168.0.1:8773/services/Cloud", 
+					"id": "09fe8a1a67fa4f46af19803aad7699a1", 
+					"publicURL": "http://172.16.0.2:8773/services/Cloud"
+				}], 
+				"endpoints_links": [], 
+				"type": "ec2", 
+				"name": "nova_ec2"
+			}, 
+			{
+				"endpoints": [{
+					"adminURL": "http://192.168.0.1:8004/v1/5114c16c3e2d496281c79b2a2ee67910", 
+					"region": "RegionOne", 
+					"internalURL": "http://192.168.0.1:8004/v1/5114c16c3e2d496281c79b2a2ee67910", 
+					"id": "b20b41e357bb48c0bd89b37f869db689", 
+					"publicURL": "http://172.16.0.2:8004/v1/5114c16c3e2d496281c79b2a2ee67910"
+				}], 
+				"endpoints_links": [], 
+				"type": "orchestration", 
+				"name": "heat"
+			}, 
+			{
+				"endpoints": [{
+					"adminURL": "http://192.168.0.1:35357/v2.0", 
+					"region": "RegionOne", 
+					"internalURL": "http://192.168.0.1:5000/v2.0", 
+					"id": "754cbc1b52e44d058233dcf3d307225c", 
+					"publicURL": "http://172.16.0.2:5000/v2.0"
+				}], 
+				"endpoints_links": [], 
+				"type": "identity", 
+				"name": "keystone"
+			}
+		], 
+		"user": 
+		{
+			"username": "admin", 
+			"roles_links": [], 
+			"id": "be3da4e490304264882f455a1f120559", 
+			"roles": 
+			[
+				{
+					"name": "_member_"
+				}, 
+				{
+					"name": "admin"
+				}
+			], 
+			"name": "admin"
+		}, 
+		"metadata": 
+		{
+			"is_admin": 0, 
+			"roles":
+			[
+				"9fe2ff9ee4384b1894a90878d3e92bab", 
+				"ad9645190ba5437aa8a28fd231c0d264"
+			]
+		}
+	}
+}
+
+
+REQ: curl -i http://172.16.0.2:8774/v2/5114c16c3e2d496281c79b2a2ee67910/images 
+-X GET 
+-H "X-Auth-Project-Id: admin" 
+-H "User-Agent: python-novaclient" 
+-H "Accept: application/json" 
+-H "X-Auth-Token: 6d25bb310e2940f79772a47f319706fc"
+
+INFO (connectionpool:202) Starting new HTTP connection (1): 172.16.0.2
+DEBUG (connectionpool:296) "GET /v2/5114c16c3e2d496281c79b2a2ee67910/images HTTP/1.1" 200 527
+RESP: [200] CaseInsensitiveDict(
+		{'date': 'Fri, 27 Jun 2014 01:50:23 GMT', 'content-length': '527', 
+		'content-type': 'application/json', 'x-compute-request-id': 'req-b4a85405-acae-4d28-83a5-c148e2c7d789'
+		}
+)
+
+RESP BODY: 
+{
+	"images": 
+	[
+		{
+			"id": "72791779-456e-4bdf-a95f-4b0f1ec170b1", 
+			"links": 
+			[
+				{
+					"href": "http://172.16.0.2:8774/v2/5114c16c3e2d496281c79b2a2ee67910/images/72791779-456e-4bdf-a95f-4b0f1ec170b1", 
+					"rel": "self"
+				}, 
+				{
+					"href": "http://172.16.0.2:8774/5114c16c3e2d496281c79b2a2ee67910/images/72791779-456e-4bdf-a95f-4b0f1ec170b1", 
+					"rel": "bookmark"
+				}, 
+				{
+					"href": "http://10.0.5.10:9292/5114c16c3e2d496281c79b2a2ee67910/images/72791779-456e-4bdf-a95f-4b0f1ec170b1", 
+					"type": "application/vnd.openstack.image", 
+					"rel": "alternate"
+				}
+			], 
+			"name": "TestVM"
+		}
+	]
+}
+
+
+REQ: curl -i http://172.16.0.2:8774/v2/5114c16c3e2d496281c79b2a2ee67910/images 
+-X GET
+-H "X-Auth-Project-Id: admin" 
+-H "User-Agent: python-novaclient" 
+-H "Accept: application/json" 
+-H "X-Auth-Token: 6d25bb310e2940f79772a47f319706fc"
+
+DEBUG (connectionpool:296) "GET /v2/5114c16c3e2d496281c79b2a2ee67910/images HTTP/1.1" 200 527
+RESP: [200] CaseInsensitiveDict(
+		{
+			'date': 'Fri, 27 Jun 2014 01:50:24 GMT', 
+			'content-length': '527', 
+			'content-type': 'application/json', 
+			'x-compute-request-id': 'req-d889a9b7-14dc-4d18-b063-35a87fc22c4a'
+		}
+)
+RESP BODY: 
+{
+	"images": 
+	[
+		{
+			"id": "72791779-456e-4bdf-a95f-4b0f1ec170b1", 
+			"links": 
+			[
+				{
+					"href": "http://172.16.0.2:8774/v2/5114c16c3e2d496281c79b2a2ee67910/images/72791779-456e-4bdf-a95f-4b0f1ec170b1", 
+					"rel": "self"
+				}, 
+				{
+					"href": "http://172.16.0.2:8774/5114c16c3e2d496281c79b2a2ee67910/images/72791779-456e-4bdf-a95f-4b0f1ec170b1", 
+					"rel": "bookmark"
+				}, 
+				{
+					"href": "http://10.0.5.10:9292/5114c16c3e2d496281c79b2a2ee67910/images/72791779-456e-4bdf-a95f-4b0f1ec170b1", 
+					"type": "application/vnd.openstack.image", 
+					"rel": "alternate"
+				}
+			], 
+			"name": "TestVM"
+		}
+	]
+}
+
+
+REQ: curl -i http://172.16.0.2:8774/v2/5114c16c3e2d496281c79b2a2ee67910/images/72791779-456e-4bdf-a95f-4b0f1ec170b1 
+-X GET 
+-H "X-Auth-Project-Id: admin" 
+-H "User-Agent: python-novaclient" 
+-H "Accept: application/json" 
+-H "X-Auth-Token: 6d25bb310e2940f79772a47f319706fc"
+
+DEBUG (connectionpool:296) "GET /v2/5114c16c3e2d496281c79b2a2ee67910/images/72791779-456e-4bdf-a95f-4b0f1ec170b1 HTTP/1.1" 200 786
+RESP: [200] CaseInsensitiveDict({'date': 'Fri, 27 Jun 2014 01:50:24 GMT', 'content-length': '786', 'content-type': 'application/json', 'x-compute-request-id': 'req-726fe9b3-dfb4-43dc-9a7b-37818e723082'})
+RESP BODY: 
+{
+	"image": 
+	{
+		"status": "ACTIVE", 
+		"updated": "2014-06-03T06:41:40Z", 
+		"links": 
+		[
+			{
+				"href": "http://172.16.0.2:8774/v2/5114c16c3e2d496281c79b2a2ee67910/images/72791779-456e-4bdf-a95f-4b0f1ec170b1", 
+				"rel": "self"
+			}, 
+			{
+				"href": "http://172.16.0.2:8774/5114c16c3e2d496281c79b2a2ee67910/images/72791779-456e-4bdf-a95f-4b0f1ec170b1", 
+				"rel": "bookmark"
+			}, 
+			{
+				"href": "http://10.0.5.10:9292/5114c16c3e2d496281c79b2a2ee67910/images/72791779-456e-4bdf-a95f-4b0f1ec170b1", 
+				"type": "application/vnd.openstack.image", 
+				"rel": "alternate"
+			}
+		], 
+		"id": "72791779-456e-4bdf-a95f-4b0f1ec170b1", 
+		"OS-EXT-IMG-SIZE:size": 14811136, 
+		"name": "TestVM", 
+		"created": "2014-06-03T06:41:40Z", 
+		"minDisk": 0, 
+		"progress": 100, 
+		"minRam": 0, 
+		"metadata": 
+		{
+			"murano_image_info": 
+				"{\"title\": \"Murano Demo\", \"type\": \"cirros.demo\"}"
+		}
+	}
+}
+
+
+REQ: curl -i http://172.16.0.2:8774/v2/5114c16c3e2d496281c79b2a2ee67910/flavors/6 
+-X GET 
+-H "X-Auth-Project-Id: admin" 
+-H "User-Agent: python-novaclient" 
+-H "Accept: application/json" 
+-H "X-Auth-Token: 6d25bb310e2940f79772a47f319706fc"
+
+DEBUG (connectionpool:296) "GET /v2/5114c16c3e2d496281c79b2a2ee67910/flavors/6 HTTP/1.1" 200 417
+RESP: [200] CaseInsensitiveDict({'date': 'Fri, 27 Jun 2014 01:50:24 GMT', 'content-length': '417', 'content-type': 'application/json', 'x-compute-request-id': 'req-8bc31716-e5d8-459a-be6b-fb71f1d8ae4f'})
+RESP BODY: 
+{
+	"flavor": 
+	{
+		"name": "cirros", 
+		"links": 
+		[
+			{
+				"href": "http://172.16.0.2:8774/v2/5114c16c3e2d496281c79b2a2ee67910/flavors/6", 
+				"rel": "self"
+			}, 
+			{
+				"href": "http://172.16.0.2:8774/5114c16c3e2d496281c79b2a2ee67910/flavors/6", 
+				"rel": "bookmark"
+			}
+		], 
+		"ram": 64, 
+		"OS-FLV-DISABLED:disabled": false, 
+		"vcpus": 1, 
+		"swap": "", 
+		"os-flavor-access:is_public": false, 
+		"rxtx_factor": 1.0, 
+		"OS-FLV-EXT-DATA:ephemeral": 0, 
+		"disk": 0, 
+		"id": "6"
+	}
+}
+
+
+REQ: curl -i http://172.16.0.2:8774/v2/5114c16c3e2d496281c79b2a2ee67910/servers 
+-X POST 
+-H "X-Auth-Project-Id: admin" 
+-H "User-Agent: python-novaclient" 
+-H "Content-Type: application/json" 
+-H "Accept: application/json" 
+-H "X-Auth-Token: 6d25bb310e2940f79772a47f319706fc" 
+-d '{
+	"server": 
+	{
+		"min_count": 1, 
+		"flavorRef": "6", 
+		"name": "vm3", 
+		"imageRef": "72791779-456e-4bdf-a95f-4b0f1ec170b1", 
+		"max_count": 1
+	}
+}'
+
+DEBUG (connectionpool:296) "POST /v2/5114c16c3e2d496281c79b2a2ee67910/servers HTTP/1.1" 202 436
+RESP: [202] CaseInsensitiveDict({'date': 'Fri, 27 Jun 2014 01:50:24 GMT', 'content-length': '436', 'content-type': 'application/json', 'location': 'http://172.16.0.2:8774/v2/5114c16c3e2d496281c79b2a2ee67910/servers/4eca22cd-4b9e-468c-8ae7-c674e8a63096', 'x-compute-request-id': 'req-b7a77511-0089-4cdf-9eb9-d09e9c41bd46'})
+RESP BODY: 
+{
+	"server": 
+	{
+		"security_groups": 
+		[
+			{
+				"name": "default"
+			}
+		], 
+		"OS-DCF:diskConfig": "MANUAL", 
+		"id": "4eca22cd-4b9e-468c-8ae7-c674e8a63096", 
+		"links": 
+		[
+			{
+				"href": "http://172.16.0.2:8774/v2/5114c16c3e2d496281c79b2a2ee67910/servers/4eca22cd-4b9e-468c-8ae7-c674e8a63096", 
+				"rel": "self"
+			}, 
+			{
+				"href": "http://172.16.0.2:8774/5114c16c3e2d496281c79b2a2ee67910/servers/4eca22cd-4b9e-468c-8ae7-c674e8a63096", 
+				"rel": "bookmark"
+			}
+		], 
+		"adminPass": "VPiZ4DQo8SUt"
+	}
+}
+
+
+REQ: curl -i http://172.16.0.2:8774/v2/5114c16c3e2d496281c79b2a2ee67910/servers/4eca22cd-4b9e-468c-8ae7-c674e8a63096 
+-X GET 
+-H "X-Auth-Project-Id: admin" 
+-H "User-Agent: python-novaclient" 
+-H "Accept: application/json" 
+-H "X-Auth-Token: 6d25bb310e2940f79772a47f319706fc"
+
+DEBUG (connectionpool:296) "GET /v2/5114c16c3e2d496281c79b2a2ee67910/servers/4eca22cd-4b9e-468c-8ae7-c674e8a63096 HTTP/1.1" 200 1456
+RESP: [200] CaseInsensitiveDict({'date': 'Fri, 27 Jun 2014 01:50:24 GMT', 'content-length': '1456', 'content-type': 'application/json', 'x-compute-request-id': 'req-a8d16b02-e49a-4d39-915c-514cdab82a57'})
+
+RESP BODY: 
+{
+	"server": 
+	{
+		"status": "BUILD", 
+		"updated": "2014-06-27T01:50:24Z", 
+		"hostId": "", 
+		"OS-EXT-SRV-ATTR:host": null, 
+		"addresses": {}, 
+		"links": 
+		[
+			{
+				"href": "http://172.16.0.2:8774/v2/5114c16c3e2d496281c79b2a2ee67910/servers/4eca22cd-4b9e-468c-8ae7-c674e8a63096", 
+				"rel": "self"
+			}, 
+			{
+				"href": "http://172.16.0.2:8774/5114c16c3e2d496281c79b2a2ee67910/servers/4eca22cd-4b9e-468c-8ae7-c674e8a63096", 
+				"rel": "bookmark"
+			}
+		], 
+		"key_name": null, 
+		"image": 
+		{
+			"id": "72791779-456e-4bdf-a95f-4b0f1ec170b1", 
+			"links": 
+			[
+				{
+					"href": "http://172.16.0.2:8774/5114c16c3e2d496281c79b2a2ee67910/images/72791779-456e-4bdf-a95f-4b0f1ec170b1", 
+					"rel": "bookmark"
+				}
+			]
+		}, 
+		"OS-EXT-STS:task_state": "scheduling", 
+		"OS-EXT-STS:vm_state": "building", 
+		"OS-EXT-SRV-ATTR:instance_name": "instance-00000036", 
+		"OS-SRV-USG:launched_at": null, 
+		"OS-EXT-SRV-ATTR:hypervisor_hostname": null, 
+		"flavor": 
+		{
+			"id": "6", 
+			"links": 
+			[
+				{
+					"href": "http://172.16.0.2:8774/5114c16c3e2d496281c79b2a2ee67910/flavors/6", 
+					"rel": "bookmark"
+				}
+			]
+		}, 
+		"id": "4eca22cd-4b9e-468c-8ae7-c674e8a63096", 
+		"security_groups": 
+		[
+			{
+				"name": "default"
+			}
+		], 
+		"OS-SRV-USG:terminated_at": null, 
+		"OS-EXT-AZ:availability_zone": "nova", 
+		"user_id": "be3da4e490304264882f455a1f120559", 
+		"name": "vm3", 
+		"created": "2014-06-27T01:50:24Z", 
+		"tenant_id": "5114c16c3e2d496281c79b2a2ee67910", 
+		"OS-DCF:diskConfig": "MANUAL", 
+		"os-extended-volumes:volumes_attached": [], 
+		"accessIPv4": "", 
+		"accessIPv6": "", 
+		"progress": 0, 
+		"OS-EXT-STS:power_state": 0, 
+		"config_drive": "", 
+		"metadata": {}
+	}
+}
+
+
+REQ: curl -i http://172.16.0.2:8774/v2/5114c16c3e2d496281c79b2a2ee67910/flavors/6 
+-X GET 
+-H "X-Auth-Project-Id: admin" 
+-H "User-Agent: python-novaclient" 
+-H "Accept: application/json" 
+-H "X-Auth-Token: 6d25bb310e2940f79772a47f319706fc"
+
+DEBUG (connectionpool:296) "GET /v2/5114c16c3e2d496281c79b2a2ee67910/flavors/6 HTTP/1.1" 200 417
+RESP: [200] CaseInsensitiveDict({'date': 'Fri, 27 Jun 2014 01:50:24 GMT', 'content-length': '417', 'content-type': 'application/json', 'x-compute-request-id': 'req-84e95518-c043-4686-85b4-ad8f50dbaa1d'})
+
+RESP BODY: 
+{
+	"flavor": 
+	{
+		"name": "cirros", 
+		"links": 
+		[
+			{
+				"href": "http://172.16.0.2:8774/v2/5114c16c3e2d496281c79b2a2ee67910/flavors/6", 
+				"rel": "self"
+			}, 
+			{
+				"href": "http://172.16.0.2:8774/5114c16c3e2d496281c79b2a2ee67910/flavors/6", 
+				"rel": "bookmark"
+			}
+		], 
+		"ram": 64, 
+		"OS-FLV-DISABLED:disabled": false, 
+		"vcpus": 1, 
+		"swap": "", 
+		"os-flavor-access:is_public": false, 
+		"rxtx_factor": 1.0, 
+		"OS-FLV-EXT-DATA:ephemeral": 0, 
+		"disk": 0, 
+		"id": "6"
+	}
+}
+
+
+REQ: curl -i http://172.16.0.2:8774/v2/5114c16c3e2d496281c79b2a2ee67910/images/72791779-456e-4bdf-a95f-4b0f1ec170b1 
+-X GET 
+-H "X-Auth-Project-Id: admin" 
+-H "User-Agent: python-novaclient" 
+-H "Accept: application/json" 
+-H "X-Auth-Token: 6d25bb310e2940f79772a47f319706fc"
+
+DEBUG (connectionpool:296) "GET /v2/5114c16c3e2d496281c79b2a2ee67910/images/72791779-456e-4bdf-a95f-4b0f1ec170b1 HTTP/1.1" 200 786
+RESP: [200] CaseInsensitiveDict({'date': 'Fri, 27 Jun 2014 01:50:24 GMT', 'content-length': '786', 'content-type': 'application/json', 'x-compute-request-id': 'req-d4f594f4-f8ed-4274-9afd-c83396d385ce'})
+
+RESP BODY: 
+{
+	"image": 
+	{
+		"status": "ACTIVE", 
+		"updated": "2014-06-03T06:41:40Z", 
+		"links": 
+		[
+			{
+				"href": "http://172.16.0.2:8774/v2/5114c16c3e2d496281c79b2a2ee67910/images/72791779-456e-4bdf-a95f-4b0f1ec170b1", 
+				"rel": "self"
+			}, 
+			{
+				"href": "http://172.16.0.2:8774/5114c16c3e2d496281c79b2a2ee67910/images/72791779-456e-4bdf-a95f-4b0f1ec170b1", 
+				"rel": "bookmark"
+			}, 
+			{
+				"href": "http://10.0.5.10:9292/5114c16c3e2d496281c79b2a2ee67910/images/72791779-456e-4bdf-a95f-4b0f1ec170b1", 
+				"type": "application/vnd.openstack.image", "rel": "alternate"
+			}
+		], 
+		"id": "72791779-456e-4bdf-a95f-4b0f1ec170b1", 
+		"OS-EXT-IMG-SIZE:size": 14811136, 
+		"name": "TestVM", 
+		"created": "2014-06-03T06:41:40Z", 
+		"minDisk": 0, 
+		"progress": 100, 
+		"minRam": 0, 
+		"metadata": 
+		{
+			"murano_image_info": "{\"title\": \"Murano Demo\", \"type\": \"cirros.demo\"}"
+		}
+	}
+}
+
+
+
+
+
+
+
+
