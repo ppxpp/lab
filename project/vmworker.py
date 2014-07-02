@@ -22,10 +22,6 @@ from service import OVSService as OVSService
 
 
 
-
-
-#def main():
-#	return
 	
 	
 cfg = CONFIG.getConfig()
@@ -41,7 +37,14 @@ def createVirtualMachine(gearman_worker, gearman_job):
 
 	vm = mVMService.getVMByUUID(vm_uuid)
 	#print vm
-	_doCreate('vm_test', 'TestVM', '6')
+	serverStatus = _doCreate('vm_test', 'TestVM', '6')
+	if serverStatus is None:
+		Log.e('create vm failed')
+	elif serverStatus == 'error':
+		Log.e('create vm error')
+	else:
+		Log.e('create vm success')
+	
 	return ''
 
 
@@ -103,7 +106,7 @@ def _doCreate(vm_name, vm_image, vm_flavor, vm_host = None):
 				break
 		if imageID is None:
 			Log.e('cannot find image')
-			raise Exception
+			raise Exception('cannot find image')
 		Log.d(imageID)
 		"""
 		获取镜像的详细信息
@@ -188,7 +191,9 @@ def _doCreate(vm_name, vm_image, vm_flavor, vm_host = None):
 		-H "Accept: application/json" 
 		-H "X-Auth-Token: 137a7fa9c13841419b1401e524bc4127"
 		"""
+		serverStatus = None
 		while(True):
+			time.sleep(1)
 			headers = {'X-Auth-Project-ID': 'admin',
 					   'User-Agent': 'python-novaclient',
 					   'Accept': 'application/json', 
@@ -200,17 +205,17 @@ def _doCreate(vm_name, vm_image, vm_flavor, vm_host = None):
 			#print response.reason
 			#print response.getheaders()
 			server = json.loads(response.read())
-			#print server
-			if server['server']['status'].lower() == 'error' or server['server']['status'].lower() == 'active':
-				Log.d('finish. status is ' + server['server']['status'])
+			serverStatus = server['server']['status'].lower()
+
+			if serverStatus == 'error' or serverStatus == 'active':
+				Log.d('finish. status is ' + serverStatus)
 				break;
 			else:
-				Log.d('wait. status is ' + server['server']['status'])
-				time.sleep(1)
+				Log.d('wait. status is ' + serverStatus)
 		
-	
-	except Exception, e:
-		print e
+		return serverStatus	
+	except Exception as e:
+		print 'error'
 	finally:
 		if httpClient:
 			httpClient.close()
