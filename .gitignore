@@ -1,1 +1,3 @@
 *.pyc
+*.log
+nogit_*
