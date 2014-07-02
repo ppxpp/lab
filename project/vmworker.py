@@ -67,7 +67,6 @@ def _doCreate(vm_name, vm_image, vm_flavor, vm_host = None):
 		httpClient.request("POST", "/v2.0/tokens", '{"auth": {"tenantName": "admin", "passwordCredentials": {"username": "admin", "password": "admin"}}}', headers)
 		response = httpClient.getresponse()
 		if int(response.status) != 200:
-			print 'status is ' + str(response.status)
 			raise Exception
 		#print response.status
 		#print response.reason
@@ -93,7 +92,6 @@ def _doCreate(vm_name, vm_image, vm_flavor, vm_host = None):
 		httpClient.request('GET', '/v2/5114c16c3e2d496281c79b2a2ee67910/images', '', headers)
 		response = httpClient.getresponse()
 		if int(response.status) != 200:
-			print 'status is ' + str(response.status)
 			raise Exception
 		#print response.reason
 		#print response.getheaders()
@@ -106,7 +104,7 @@ def _doCreate(vm_name, vm_image, vm_flavor, vm_host = None):
 		if imageID is None:
 			Log.e('cannot find image')
 			raise Exception
-		print imageID
+		Log.d(imageID)
 		"""
 		获取镜像的详细信息
 		REQ: curl -i http://172.16.0.2:8774/v2/5114c16c3e2d496281c79b2a2ee67910/images/72791779-456e-4bdf-a95f-4b0f1ec170b1 
@@ -136,11 +134,79 @@ def _doCreate(vm_name, vm_image, vm_flavor, vm_host = None):
 		httpClient = httplib.HTTPConnection(NOVA_HOST, 8774, timeout = 30)
 		httpClient.request('GET', '/v2/5114c16c3e2d496281c79b2a2ee67910/flavors', '', headers)
 		response = httpClient.getresponse()
-		print response.status
-		print response.reason
-		print response.getheaders()
-		print response.read()
+		#print response.status
+		#print response.reason
+		#print response.getheaders()
+		flavors = json.loads(response.read())
+		#print flavors
+		flavorID = None
+		for flavor in flavors['flavors']:
+			#print flavor
+			if flavor['id'] == vm_flavor or flavor['name'] == vm_flavor:
+				flavorID = flavor['id']
+				break
+		if flavorID is None:
+			Log.e('cannot find flavor. falvor is ' + str(vm_flavor))
+			raise Exception
 
+
+		"""
+		创建虚拟机
+		REQ: curl -i http://172.16.0.2:8774/v2/5114c16c3e2d496281c79b2a2ee67910/servers 
+		-X POST 
+		-H "X-Auth-Project-Id: admin" 
+		-H "User-Agent: python-novaclient" 
+		-H "Content-Type: application/json" 
+		-H "Accept: application/json" 
+		-H "X-Auth-Token: 137a7fa9c13841419b1401e524bc4127" 
+		-d '{"server": {"min_count": 1, "flavorRef": "6", "name": "vm4", "imageRef": "72791    779-456e-4bdf-a95f-4b0f1ec170b1", "max_count": 1}}'
+		"""
+		headers = {'X-Auth-Project-Id':'admin',
+					'User-Agent': 'Python-novaclient',
+					'Content-Type': 'application/json',
+					'Accept': 'application/json', 
+					'X-Auth-Token': token}
+		httpClient = httplib.HTTPConnection(NOVA_HOST, 8774, timeout = 30)
+		httpClient.request('POST', '/v2/5114c16c3e2d496281c79b2a2ee67910/servers', 
+						'{"server": {"min_count": 1, "flavorRef": "' + flavorID + '", "name": "' + vm_name + '", "imageRef": "' + imageID + '", "max_count": 1}}', 
+						headers)
+		response = httpClient.getresponse()
+		#print response.status
+		#print response.reason
+		#print response.getheaders()
+		server = json.loads(response.read())
+		serverID = server['server']['id']
+		if serverID is None:
+			Log.e('returned server id is None')
+			raise Exception
+		"""
+		查询server状态
+		REQ: curl -i http://172.16.0.2:8774/v2/5114c16c3e2d496281c79b2a2ee67910/servers/38590b0e-f683-43f6-8369-bb92096d415c 
+		-X GET 
+		-H "X-Auth-Project-Id: admin" 
+		-H "User-Agent: python-novaclient" 
+		-H "Accept: application/json" 
+		-H "X-Auth-Token: 137a7fa9c13841419b1401e524bc4127"
+		"""
+		while(True):
+			headers = {'X-Auth-Project-ID': 'admin',
+					   'User-Agent': 'python-novaclient',
+					   'Accept': 'application/json', 
+					   'X-Auth-Token': token}
+			httpClient = httplib.HTTPConnection(NOVA_HOST, 8774, timeout = 30)
+			httpClient.request('GET', '/v2/5114c16c3e2d496281c79b2a2ee67910/servers/' + serverID, '', headers)
+			response = httpClient.getresponse()
+			#print response.status
+			#print response.reason
+			#print response.getheaders()
+			server = json.loads(response.read())
+			#print server
+			if server['server']['status'].lower() == 'error' or server['server']['status'].lower() == 'active':
+				Log.d('finish. status is ' + server['server']['status'])
+				break;
+			else:
+				Log.d('wait. status is ' + server['server']['status'])
+				time.sleep(1)
 		
 	
 	except Exception, e:
