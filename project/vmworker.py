@@ -205,6 +205,7 @@ def _doCreate(vm_name, vm_image, vm_flavor, vm_host = None):
 			#print response.reason
 			#print response.getheaders()
 			server = json.loads(response.read())
+			print '\n' + json.dumps(server) + '\n'
 			serverStatus = server['server']['status'].lower()
 
 			if serverStatus == 'error' or serverStatus == 'active':
