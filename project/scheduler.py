@@ -94,9 +94,6 @@ def main():
 	taskXMLPath = '/Users/zhouhao/baiduyun/lab/code/task.xml'
 	#虚拟机列表
 	vmList = getVMList(taskXMLPath)
-	print vmList
-	
-	
 
 	task = {}
 	#在数据库创建任务记录
@@ -117,6 +114,7 @@ def main():
 		vm['vm_status'] = 'vm_status_wait'
 		vm['task_uuid'] = task['task_uuid']
 		#vm['id'] = mVMService.addNewVM(vm)
+		print vm
 	
 	#gmClient = gearman.GearmanClient([config.get('gearman', 'server')])
 	jobs = []
@@ -125,7 +123,7 @@ def main():
 		job['task'] = 'createVirtualMachine'
 		job['data'] = vm['vm_uuid']
 		jobs.append(job)
-	print jobs
+	#print jobs
 	#submitted_requests = gmClient.submit_multiple_jobs(jobs, background = True, wait_until_complete = False)
 	#print submitted_requests
 
@@ -137,21 +135,113 @@ def main():
 	#print submitted_requests
 
 
+	"""
+	"""
+	for vm in vmList:
+		vm['host_uuid'] = 'host_uuid_uuid'
+
+
 	#ovs交换机列表
 	ovsList = getOVSList(taskXMLPath)
-	print ovsList
-	#将ovs信息填入数据表
+
+	#link信息
+	topologys = getTopology(taskXMLPath)
+
+	# 确定ovs有几个ovs_part
+	# 1. 若ovs直接只通过trunk口连接，则只取决于该ovs与vm的连接关系
+	#    因为每个计算节点都有一个出口ovs，该计算节点上的所有其他ovs都会与出口ovs相连，
+	#    所以分布在不同计算节点上的ovs实际上已经是相连的
+	# 2. 若ovs直接也通过access口连接，则取决于该ovs与vm以及其他ovs的连接关系
+	# 此处考虑第二种情况
+	# 所ovs_part只有一个，则该ovs不需要与计算节点的出口ovs相连，
+	# 若ovs_part数量多于1个，则每个ovs_part都需要与计算节点的出口ovs相连，且vlan tag为task的默认vlan tag
 	mOVSService = OVSService.OVSService(config)
 	for ovs in ovsList:
 		ovs['ovs_status'] = 'ovs_status_wait'
 		ovs['task_uuid'] = task['task_uuid']
 		#ovs['id'] = mOVSService.addNewOVS(ovs)
-		Log.d(ovs)
-	
-	#link信息
-	topology = getTopology(taskXMLPath)
-	print topology	
+		ovs['ovs_parts'] = []
+		for link in topologys:
+			ovs_parts = ovs['ovs_parts']
+			ovs_idx = 0
+			if link[ovs_idx]['type'] != 'ovs' and link[1 - ovs_idx]['type'] == 'ovs':
+				ovs_idx = 1 - ovs_idx
+			if link[ovs_idx]['name'] == ovs['ovs_name'] and link[1 - ovs_idx]['type'] == 'vm':
+				#先考虑与vm相连的情况
+				vm = findVMByName(link[1 - ovs_idx]['name'], vmList)
+				#检测是否在该host上有ovs_part
+				ovs_part = None
+				for part in ovs_parts:
+					if part['host_uuid'] == vm['host_uuid']:
+						ovs_part = part
+						break
+				if ovs_part is None:
+					#创建新的ovs_part
+					ovs_part = {}
+					ovs_part['ovs_part_uuid'] = str(int(time.time())) + str(random.randrange(100,1000))
+					ovs_part['ovs_uuid'] = ovs['ovs_uuid']
+					ovs_part['ovs_part_status'] = 'ovs_part_status_wait'
+					ovs_part['host_uuid'] = vm['host_uuid']
+					ovs_parts.append(ovs_part)
+		ovs['ovs_parts'] = ovs_parts
+	#考虑ovs与ovs相连的情况
+	for ovs in ovsList:
+		addedLinks = []
+		for link in topologys:
+			ovs_parts = ovs['ovs_parts']
+			ovs_idx = 0
+			if link[ovs_idx]['type'] == 'ovs' and link[ovs_idx]['name'] != ovs['ovs_name']:
+				ovs_idx = 1 - ovs_idx
+			if link[ovs_idx]['type'] == 'ovs' and link[ovs_idx]['name'] == ovs['ovs_name'] and link[1 - ovs_idx]['type'] == 'ovs':
+				ovs_2 = findOVSByName(link[1 - ovs_idx]['name'], ovsList)
+				if ovs_2['ovs_name'] == ovs['ovs_name']:
+					continue
+				if containSameValue(ovs['ovs_parts'], ovs_2['ovs_parts']) == False:
+					hosts_for_ovs = hostForOVS(ovs)
+					hosts_for_ovs_2 = hostsForOVS(ovs_2)
+					if len(hosts_for_ovs) == 0 and len(hosts_for_ovs_2) != 0:
+						#在ovs中增加一个ovs_part，host为ovs_2中的任意一个host
+						ovs_part = {}
+						ovs_part['ovs_part_uuid'] = str(int(time.time())) + str(random.randrange(100,1000))
+						ovs_part['ovs_uuid'] = ovs['ovs_uuid']
+						ovs_part['ovs_part_status'] = 'ovs_part_status_wait'
+						ovs_part['host_uuid'] = ovs_2['ovs_parts'][0]['host_uuid']
+						ovs['ovs_parts'].append(ovs_part)
+					elif len(host_for_ovs) != 0 and len(hosts_for_ovs_2) == 0:
+						#在ovs_2中增加一个ovs_part,host为ovs中的任意一个host
+					else:
+						#在ovs和ovs_2中各增加一个ovs_part，host为任意一个host
+					
 
+
+#在vm列表中根据vm的名字取出对应的vm记录
+def findVMByName(name, vms):
+	for vm in vms:
+		if vm['vm_name'] == name:
+			return vm
+	return None
+
+
+#根据ovs名字查找对应的元素
+def findOVSByName(name, ovsList):
+	for ovs in ovsList:
+		if ovs['ovs_name'] == name:
+			return ovs
+	return None
+
+#获取ovs所使用的host列表
+def hostForOVS(ovs):
+	host = []
+	for part in ovs['ovs_parts']:
+		host.append(part['host_uuid'])
+
+#判断两个数组是否含有相同值的元素
+def containSameValue(arr1, arr2):
+	for i in arr1:
+		for j in arr2:
+			if i == j:
+				return True
+	return False
 
 
 
