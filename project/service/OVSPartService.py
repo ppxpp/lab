@@ -53,7 +53,6 @@ class OVSPartService(object):
 		sql = 'select ' + selectField + ' from `tbl_ovs_part` where `ovs_part_uuid` = %s'
 		if includeDelete is False:
 			sql = sql + ' and `delete` = 0'
-		print sql
 		#注意sql注入
 		#sql = 'select ' + selectField + ' from tbl_task where task_uuid = "' + uuid + '"'
 		task = self.conn.get(sql, uuid)
@@ -108,7 +107,7 @@ class OVSPartService(object):
 	"""
 	def deleteOVSPart(self, ovspart):
 		_ovspart = {}
-		_ovparts['ovs_part_uuid'] = ovspart['ovs_part_uuid']
+		_ovspart['ovs_part_uuid'] = ovspart['ovs_part_uuid']
 		_ovspart['delete'] = int(time.time())
 		return self.updateOVSPart(_ovspart)
 
@@ -121,10 +120,10 @@ if __name__ == "__main__":
 	field = ['ovs_part_uuid', 'ovs_uuid', {'ovs_part_status':'status'}, 'delete', {'id':'table_id'}]
 	print mOVSPartService.getOVSPartByUUID('69', field, False)
 	#task = {'uuid':'908', 'owner':'john', 'status':'status_start', 'extra':'this is extra'}
-	#obj = {'ovs_uuid':'61', 'ovs_part_uuid':'69', 'ovs_part_mac':'ff:dd:aa:22:23:a2','ovs_part_status':'status_start', 'host_uuid':'host_uuid_uuid'}
+	obj = {'ovs_uuid':'xxxx', 'ovs_part_uuid':'69', 'ovs_part_mac':'ff:dd:aa:22:23:a2','ovs_part_status':'status_start', 'host_uuid':'host_uuid_uuid'}
 	#print mOVSPartService.addNewOVSPart(obj)
-	#print mOVSService.updateOVS(ovs)
-	#print mOVSService.deleteOVS(ovs)
+	print mOVSPartService.updateOVSPart(obj)
+	#print mOVSPartService.deleteOVSPart(obj)
 	#print vm
 
 

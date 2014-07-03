@@ -150,7 +150,10 @@ class Connection(object):
 
 	def _execute(self, cursor, query, parameters):
 		try:
-			return cursor.execute(query, [parameters])
+			if type(parameters) is list:
+				return cursor.execute(query, parameters)
+			else:
+				return cursor.execute(query, [parameters])
 		except Exception:
 			print "Error connecting to MySQL on %s" %(self.host)
 			self.close()
