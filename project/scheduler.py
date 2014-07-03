@@ -114,7 +114,6 @@ def main():
 		vm['vm_status'] = 'vm_status_wait'
 		vm['task_uuid'] = task['task_uuid']
 		#vm['id'] = mVMService.addNewVM(vm)
-		print vm
 	
 	#gmClient = gearman.GearmanClient([config.get('gearman', 'server')])
 	jobs = []
@@ -139,6 +138,7 @@ def main():
 	"""
 	for vm in vmList:
 		vm['host_uuid'] = 'host_uuid_uuid'
+		print vm
 
 
 	#ovs交换机列表
@@ -209,8 +209,28 @@ def main():
 						ovs['ovs_parts'].append(ovs_part)
 					elif len(host_for_ovs) != 0 and len(hosts_for_ovs_2) == 0:
 						#在ovs_2中增加一个ovs_part,host为ovs中的任意一个host
+						ovs_part = {}
+						ovs_part['ovs_part_uuid'] = str(int(time.time())) + str(random.randrange(100,1000))
+						ovs_part['ovs_uuid'] = ovs['ovs_uuid']
+						ovs_part['ovs_part_status'] = 'ovs_part_status_wait'
+						ovs_part['host_uuid'] = ovs['ovs_parts'][0]['host_uuid']
+						ovs_2['ovs_parts'].append(ovs_part)
 					else:
 						#在ovs和ovs_2中各增加一个ovs_part，host为任意一个host
+						ovs_part = {}
+						ovs_part['ovs_part_uuid'] = str(int(time.time())) + str(random.randrange(100,1000))
+						ovs_part['ovs_uuid'] = ovs['ovs_uuid']
+						ovs_part['ovs_part_status'] = 'ovs_part_status_wait'
+						ovs_part['host_uuid'] = 'uuid_host_uuid'#任意一个host_uuid
+						ovs['ovs_parts'].append(ovs_part)
+						ovs_part = {}
+						ovs_part['ovs_part_uuid'] = str(int(time.time())) + str(random.randrange(100,1000))
+						ovs_part['ovs_uuid'] = ovs['ovs_uuid']
+						ovs_part['ovs_part_status'] = 'ovs_part_status_wait'
+						ovs_part['host_uuid'] = 'uuid_host_uuid'#任意一个host_uuid
+						ovs_2['ovs_parts'].append(ovs_part)
+	for ovs in ovsList:
+		print ovs
 					
 
 
