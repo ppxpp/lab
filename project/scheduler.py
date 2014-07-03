@@ -95,12 +95,8 @@ def main():
 	#虚拟机列表
 	vmList = getVMList(taskXMLPath)
 	print vmList
-	#ovs交换机列表
-	ovsList = getOVSList(taskXMLPath)
-	print ovsList
-	#link信息
-	topology = getTopology(taskXMLPath)
-	print topology
+	
+	
 
 	task = {}
 	#在数据库创建任务记录
@@ -122,7 +118,7 @@ def main():
 		vm['task_uuid'] = task['task_uuid']
 		#vm['id'] = mVMService.addNewVM(vm)
 	
-	gmClient = gearman.GearmanClient([config.get('gearman', 'server')])
+	#gmClient = gearman.GearmanClient([config.get('gearman', 'server')])
 	jobs = []
 	for vm in vmList:
 		job = {}
@@ -130,8 +126,8 @@ def main():
 		job['data'] = vm['vm_uuid']
 		jobs.append(job)
 	print jobs
-	submitted_requests = gmClient.submit_multiple_jobs(jobs, background = True, wait_until_complete = False)
-	print submitted_requests
+	#submitted_requests = gmClient.submit_multiple_jobs(jobs, background = True, wait_until_complete = False)
+	#print submitted_requests
 
 	#gmClient = gearman.GearmanClient(['172.16.0.2:4330'])
 	#jobRequest = gmClient.submit_job('job name', 'arbitary binary data', priority = gearman.PRIORITY_HIGH, background = True, wait_until_complete = False)
@@ -139,6 +135,11 @@ def main():
 	#list_of_jobs = [dict(task="task_name", data="binary data"), dict(task="other_task", data="other binary data")]
 	#submitted_requests = gmClient.submit_multiple_jobs(list_of_jobs, background=False, wait_until_complete=False)
 	#print submitted_requests
+
+
+	#ovs交换机列表
+	ovsList = getOVSList(taskXMLPath)
+	print ovsList
 	#将ovs信息填入数据表
 	mOVSService = OVSService.OVSService(config)
 	for ovs in ovsList:
@@ -147,7 +148,9 @@ def main():
 		#ovs['id'] = mOVSService.addNewOVS(ovs)
 		Log.d(ovs)
 	
-		
+	#link信息
+	topology = getTopology(taskXMLPath)
+	print topology	
 
 
 
