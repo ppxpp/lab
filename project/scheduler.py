@@ -115,6 +115,10 @@ def main():
 		vm['task_uuid'] = task['task_uuid']
 		#vm['id'] = mVMService.addNewVM(vm)
 	
+	#从拓扑结构推测出vm的接口信息
+	
+
+
 	#gmClient = gearman.GearmanClient([config.get('gearman', 'server')])
 	jobs = []
 	for vm in vmList:
@@ -148,6 +152,12 @@ def main():
 	topologys = getTopology(taskXMLPath)
 	for link in topologys:
 		print link
+
+
+	#计算实际需要的link
+	necessaryLinks = []
+	#计算实际需要的接口/端口
+	necessaryPorts = []
 
 	# 确定ovs有几个ovs_part
 	# 1. 若ovs直接只通过trunk口连接，则只取决于该ovs与vm的连接关系
@@ -185,6 +195,11 @@ def main():
 					ovs_part['ovs_part_status'] = 'ovs_part_status_wait'
 					ovs_part['host_uuid'] = vm['host_uuid']
 					ovs_parts.append(ovs_part)
+					#新增端口信息
+					port = {}
+					port['port_uuid'] = str(int((time.time())))  + str(random.randrange(100, 1000))
+
+					#创建vm到ovs的连接
 		ovs['ovs_parts'] = ovs_parts
 	for ovs in ovsList:
 		print '+++++++++++++++++++++++++++++++++++++++++++++++++++++++'
