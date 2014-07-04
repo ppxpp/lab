@@ -137,7 +137,7 @@ def main():
 	"""
 	"""
 	for vm in vmList:
-		vm['host_uuid'] = 'host_uuid_uuid'
+		vm['host_uuid'] = 'host_uuid_uuid_' + str(random.randrange(10, 99))
 		print vm
 
 
@@ -254,6 +254,7 @@ def hostForOVS(ovs):
 	host = []
 	for part in ovs['ovs_parts']:
 		host.append(part['host_uuid'])
+	return host
 
 #判断两个数组是否含有相同值的元素
 def containSameValue(arr1, arr2):

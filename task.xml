@@ -37,10 +37,34 @@
 		<ovs name="ovs1">
 
 		</ovs>
+		<ovs name="ovs2">
+		</ovs>
 	</switches>
 	<topology>
 		<!-- 在次拓扑结构下，ovs的默认vlan tag，与其他拓扑之间隔离 -->
 		<default_vlan_tag>10</default_vlan_tag>
+		<link>
+			<endpoint>
+				<type>ovs</type>
+				<name>ovs1</name>
+			</endpoint>
+			<endpoint>
+				<type>ovs</type>
+				<name>ovs2</name>
+				<vlan_tag>15</vlan_tag>
+			</endpoint>
+		</link>
+		<link>
+			<endpoint>
+				<type>ovs</type>
+				<name>ovs1</name>
+			</endpoint>
+			<endpoint>
+				<type>ovs</type>
+				<name>ovs2</name>
+				<vlan_tag>15</vlan_tag>
+			</endpoint>
+		</link>
 		<link>
 			<endpoint>
 				<type>vm</type>
@@ -55,6 +79,7 @@
 				<vlan_tag>12</vlan_tag>
 			</endpoint>
 		</link>
+		<!--
 		<link>
 			<endpoint>
 				<type>vm</type>
@@ -63,12 +88,11 @@
 			</endpoint>
 			<endpoint>
 				<type>ovs</type>
-				<!-- ovs的名称 -->
 				<name>ovs1</name>
-				<!-- 端口的valn tag，可选。用于指定对应端口的vlan tag。若不指定，则使用默认的vlan tag -->
 				<vlan_tag>12</vlan_tag>
 			</endpoint>
 		</link>
+		-->
 		<link>
 			<endpoint>
 				<type>vm</type>
