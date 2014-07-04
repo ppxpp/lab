@@ -1,3 +1,5 @@
 *.pyc
 *.log
 nogit_*
+project/utils/log.py
+project/conf/config.ini

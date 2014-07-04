@@ -146,6 +146,8 @@ def main():
 
 	#link信息
 	topologys = getTopology(taskXMLPath)
+	for link in topologys:
+		print link
 
 	# 确定ovs有几个ovs_part
 	# 1. 若ovs直接只通过trunk口连接，则只取决于该ovs与vm的连接关系
@@ -184,6 +186,11 @@ def main():
 					ovs_part['host_uuid'] = vm['host_uuid']
 					ovs_parts.append(ovs_part)
 		ovs['ovs_parts'] = ovs_parts
+	for ovs in ovsList:
+		print '+++++++++++++++++++++++++++++++++++++++++++++++++++++++'
+		for part in ovs['ovs_parts']:
+			print part
+	print '========================================================'
 	#考虑ovs与ovs相连的情况
 	for ovs in ovsList:
 		addedLinks = []
@@ -196,9 +203,11 @@ def main():
 				ovs_2 = findOVSByName(link[1 - ovs_idx]['name'], ovsList)
 				if ovs_2['ovs_name'] == ovs['ovs_name']:
 					continue
-				if containSameValue(ovs['ovs_parts'], ovs_2['ovs_parts']) == False:
+				print '---------------------in loop----------------------------'
+				print link
+				if isLocateInSameHost(ovs['ovs_parts'], ovs_2['ovs_parts']) == False:
 					hosts_for_ovs = hostForOVS(ovs)
-					hosts_for_ovs_2 = hostsForOVS(ovs_2)
+					hosts_for_ovs_2 = hostForOVS(ovs_2)
 					if len(hosts_for_ovs) == 0 and len(hosts_for_ovs_2) != 0:
 						#在ovs中增加一个ovs_part，host为ovs_2中的任意一个host
 						ovs_part = {}
@@ -207,7 +216,7 @@ def main():
 						ovs_part['ovs_part_status'] = 'ovs_part_status_wait'
 						ovs_part['host_uuid'] = ovs_2['ovs_parts'][0]['host_uuid']
 						ovs['ovs_parts'].append(ovs_part)
-					elif len(host_for_ovs) != 0 and len(hosts_for_ovs_2) == 0:
+					elif len(hosts_for_ovs) != 0 and len(hosts_for_ovs_2) == 0:
 						#在ovs_2中增加一个ovs_part,host为ovs中的任意一个host
 						ovs_part = {}
 						ovs_part['ovs_part_uuid'] = str(int(time.time())) + str(random.randrange(100,1000))
@@ -215,6 +224,14 @@ def main():
 						ovs_part['ovs_part_status'] = 'ovs_part_status_wait'
 						ovs_part['host_uuid'] = ovs['ovs_parts'][0]['host_uuid']
 						ovs_2['ovs_parts'].append(ovs_part)
+					elif len(hosts_for_ovs) > 0 and len(hosts_for_ovs_2) > 0:
+						#在ovs中增加一个ovs_part，其host为ovs_2中的任一host
+						ovs_part = {}
+						ovs_part['ovs_part_uuid'] = str(int(time.time())) + str(random.randrange(100,1000))
+						ovs_part['ovs_uuid'] = ovs['ovs_uuid']
+						ovs_part['ovs_part_status'] = 'ovs_part_status_wait'
+						ovs_part['host_uuid'] = ovs_2['ovs_parts'][0]['host_uuid']
+						ovs['ovs_parts'].append(ovs_part)
 					else:
 						#在ovs和ovs_2中各增加一个ovs_part，host为任意一个host
 						ovs_part = {}
@@ -230,7 +247,9 @@ def main():
 						ovs_part['host_uuid'] = 'uuid_host_uuid'#任意一个host_uuid
 						ovs_2['ovs_parts'].append(ovs_part)
 	for ovs in ovsList:
-		print ovs
+		print '+++++++++++++++++++++++++++++++++++++++++++++++++++++++'
+		for part in ovs['ovs_parts']:
+			print part
 					
 
 
@@ -257,22 +276,12 @@ def hostForOVS(ovs):
 	return host
 
 #判断两个数组是否含有相同值的元素
-def containSameValue(arr1, arr2):
-	for i in arr1:
-		for j in arr2:
-			if i == j:
+def isLocateInSameHost(ovs_parts1, ovs_parts2):
+	for part1 in ovs_parts1:
+		for part2 in ovs_parts2:
+			if part1['host_uuid'] == part2['host_uuid']:
 				return True
 	return False
-
-
-
-
-
-
-
-
-
-
 
 
 
