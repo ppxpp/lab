@@ -9,6 +9,7 @@ import os
 import time
 import random
 import gearman
+import json
 
 from utils import config as CONFIG
 from utils import log as Log
@@ -81,6 +82,29 @@ def getTopology(xmlPath):
 		linkList.append(link)
 	return linkList
 
+def addInterfaceForVM(vm):
+	#为vm添加一个网卡接口
+	port = {}
+	port['port_uuid'] = str(int(time.time())) + str(random.randrange(100, 1000))
+	port['port_type'] = 'type_vm'
+	port['device_uuid'] = vm['vm_uuid']
+	#该属性在确立link时使用
+	port['used'] = False
+	if vm.get('vm_ports') is None:
+		vm['vm_ports'] = []
+	vm['vm_ports'].append(port)
+
+
+#获取虚拟机的一个未使用的接口
+def getFirstUnusedInterfaceForVM(vm):
+	if vm.get('vm_ports') is None:
+		return None
+	ports = vm['vm_ports']
+	for port in ports:
+		if port['used'] == False:
+			return port
+	return None
+
 
 
 def main():
@@ -108,24 +132,37 @@ def main():
 	mTaskService = TaskService.TaskService(config)
 	#task['id'] =  mTaskService.addNewTask(task)
 
-	#将虚拟机信息填入数据表
+	
+	
+	#link信息
+	topologys = getTopology(taskXMLPath)
+
+	#从拓扑结构推测出vm的接口信息
+	for vm in vmList:
+		for link in topologys:
+			if link[0]['type'] == 'vm' and link[0]['name'] == vm['vm_name']:
+				#增加一个接口
+				addInterfaceForVM(vm)
+			elif link[1]['type'] == 'vm' and link[1]['name'] == vm['vm_name']:
+				#增加一个接口
+				addInterfaceForVM(vm)
+	
+	#将虚拟机信息，port信息写入数据库
 	mVMService = VMService.VMService(config)
 	for vm in vmList:
 		vm['vm_status'] = 'vm_status_wait'
 		vm['task_uuid'] = task['task_uuid']
+		#将vm的port信息写入数据库
 		#vm['id'] = mVMService.addNewVM(vm)
-	
-	#从拓扑结构推测出vm的接口信息
-	
 
-
+	#提交虚拟机创建任务，并等待任务执行结束
 	#gmClient = gearman.GearmanClient([config.get('gearman', 'server')])
-	jobs = []
-	for vm in vmList:
-		job = {}
-		job['task'] = 'createVirtualMachine'
-		job['data'] = vm['vm_uuid']
-		jobs.append(job)
+	#jobs = []
+	#for vm in vmList:
+	#	job = {}
+	#	job['task'] = 'createVirtualMachine'
+	#	job['data'] = vm['vm_uuid']
+	#	jobs.append(job)
 	#print jobs
 	#submitted_requests = gmClient.submit_multiple_jobs(jobs, background = True, wait_until_complete = False)
 	#print submitted_requests
@@ -138,8 +175,7 @@ def main():
 	#print submitted_requests
 
 
-	"""
-	"""
+	#模拟worker在后台进行虚拟机创建，仅用于代码测试
 	for vm in vmList:
 		vm['host_uuid'] = 'host_uuid_uuid_' + str(random.randrange(10, 99))
 		print vm
@@ -148,16 +184,13 @@ def main():
 	#ovs交换机列表
 	ovsList = getOVSList(taskXMLPath)
 
-	#link信息
-	topologys = getTopology(taskXMLPath)
+	print '\nlinks:\n'
 	for link in topologys:
 		print link
 
 
 	#计算实际需要的link
 	necessaryLinks = []
-	#计算实际需要的接口/端口
-	necessaryPorts = []
 
 	# 确定ovs有几个ovs_part
 	# 1. 若ovs直接只通过trunk口连接，则只取决于该ovs与vm的连接关系
@@ -198,8 +231,29 @@ def main():
 					#新增端口信息
 					port = {}
 					port['port_uuid'] = str(int((time.time())))  + str(random.randrange(100, 1000))
+					port['device_uuid'] = ovs_part['ovs_part_uuid']
+					port['port_type'] = 'type_ovs'
+					port['vlan_tag'] = link[ovs_idx]['vlan_tag']
+					port['used'] = False
+					if ovs_part.get('ovs_part_ports') is None:
+						ovs_part['ovs_part_ports'] = []
+					ovs_part['ovs_part_ports'].append(port)
 
 					#创建vm到ovs的连接
+					necessaryLink = {}
+					necessaryLink['link_uuid'] = str(int(time.time())) + str(random.randrange(100,1000))
+					necessaryLink['task_uuid'] = task['task_uuid']
+					necessaryLink['link_status'] = 'link_status_wait'
+					necessaryLink['link_port1_uuid'] = port['port_uuid']
+					port['used'] = True
+					vmPort = getFirstUnusedInterfaceForVM(vm)
+					if vmPort is None:
+						Log.e('error, vm port is None')
+						raise Exception
+					vmPort['used'] = True
+					necessaryLink['link_port2_uuid'] = vmPort['port_uuid']
+					necessaryLinks.append(necessaryLink)
+
 		ovs['ovs_parts'] = ovs_parts
 	for ovs in ovsList:
 		print '+++++++++++++++++++++++++++++++++++++++++++++++++++++++'
@@ -208,7 +262,6 @@ def main():
 	print '========================================================'
 	#考虑ovs与ovs相连的情况
 	for ovs in ovsList:
-		addedLinks = []
 		for link in topologys:
 			ovs_parts = ovs['ovs_parts']
 			ovs_idx = 0
@@ -261,11 +314,79 @@ def main():
 						ovs_part['ovs_part_status'] = 'ovs_part_status_wait'
 						ovs_part['host_uuid'] = 'uuid_host_uuid'#任意一个host_uuid
 						ovs_2['ovs_parts'].append(ovs_part)
+				#在位于相同host上的ovs_part之间增加port和necessaryLink
+				ovsPartTuple = findOVSPartInSameHost(ovs, ovs_2)
+				print '\ntuple[0]:'
+				print ovsPartTuple[0]
+				print '\ntuple[1]:'
+				print ovsPartTuple[1]
+				if isOVSPartConnected(ovsPartTuple[0], ovsPartTuple[1], necessaryLinks) == True:
+					continue
+				ovs_part = ovsPartTuple[0]
+				port1 = {}
+				port1['port_uuid'] = str(int(time.time())) + str(random.randrange(100,1000))
+				port1['port_type'] = 'type_ovs_part'
+				port1['vlan_tag'] = link[1-ovs_idx]['vlan_tag']
+				port1['device_uuid'] = ovs_part['ovs_part_uuid']
+				port1['used'] = False
+				if ovs_part.get('ovs_part_ports') is None:
+					ovs_part['ovs_part_ports'] = []
+				ovs_part['ovs_part_ports'].append(port1)
+				
+				ovs_2_part = ovsPartTuple[1]
+				port2 = {}
+				port2['port_uuid'] = str(int(time.time())) + str(random.randrange(100,1000))
+				port2['port_type'] = 'type_ovs_part'
+				port2['vlan_tag'] = link[ovs_idx]['vlan_tag']
+				port2['device_uuid'] = ovs_2_part['ovs_part_uuid']
+				port2['used'] = False
+				if ovs_2_part.get('ovs_part_ports') is None:
+					ovs_2_part['ovs_part_ports'] = []
+				ovs_2_part['ovs_part_ports'].append(port2)
+
+				#添加link信息
+				necessaryLink = {}
+				necessaryLink['link_uuid'] = str(int(time.time())) + str(random.randrange(100,1000))
+				necessaryLink['task_uuid'] = task['task_uuid']
+				necessaryLink['link_status'] = 'link_status_wait'
+				necessaryLink['link_port1_uuid'] = port1['port_uuid']
+				port1['used'] = True
+				necessaryLink['link_port2_uuid'] = port2['port_uuid']
+				port2['used'] = True
+				necessaryLinks.append(necessaryLink)
+
+	print '\njson dumps'
 	for ovs in ovsList:
-		print '+++++++++++++++++++++++++++++++++++++++++++++++++++++++'
-		for part in ovs['ovs_parts']:
-			print part
+		print json.dumps(ovs)
 					
+
+
+
+#判断port_uuid是否属于给定的ovs_part
+def isContainPort(ovs_part, port_uuid):
+	result = False
+	if ovs_part.get('ovs_part_ports') is None:
+		return False
+	for port in ovs_part['ovs_part_ports']:
+		if port['port_uuid'] == port_uuid:
+			result = True
+			break
+	return result
+
+#根据给出的link信息判断两个ovs_part是否已经有link将它们相连
+def isOVSPartConnected(ovs_part1, ovs_part2, links):
+	isConnected = False
+	for link in links:
+		port1_uuid = link['link_port1_uuid']
+		port2_uuid = link['link_port2_uuid']
+		if isContainPort(ovs_part1, port1_uuid) and isContainPort(ovs_part2, port2_uuid):
+			isConnected = True
+			break
+		elif isContainPort(ovs_part1, port2_uuid) and isContainPort(ovs_part2, port1_uuid):
+			isConnected = True
+			break
+	return isConnected
+		
 
 
 #在vm列表中根据vm的名字取出对应的vm记录
@@ -298,6 +419,13 @@ def isLocateInSameHost(ovs_parts1, ovs_parts2):
 				return True
 	return False
 
+#获取两个ovs位于同一host上的ovs_part,并返回
+def findOVSPartInSameHost(ovs1, ovs2):
+	for part1 in ovs1['ovs_parts']:
+		for part2 in ovs2['ovs_parts']:
+			if part1['host_uuid'] == part2['host_uuid']:
+				return [part1, part2]
+	return None
 
 
 
