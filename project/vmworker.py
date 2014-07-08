@@ -41,21 +41,24 @@ def createVirtualMachine(gearman_worker, gearman_job):
 	pid = os.fork()
 	if pid == 0:
 		#子进程
-		#serverStatus = _doCreate('vm_test', 'TestVM', '6')
+		serverStatus = _doCreate('vm_test', 'TestVM', '6')
 		print 'from child' + str(pid)
 		#结束子进程
-		os._exit(0)
+		if serverStatus is None:
+			Log.e('create vm failed')
+			os._exit(1)
+		elif serverStatus == 'error':
+			Log.e('create vm error')
+			os._exit(1)
+		else:
+			Log.e('create vm success')
+			os._exit(0)
 	else:
 		#父进程，等待子进程结束
 		result = os.wait()
 		print result
 
-	if serverStatus is None:
-		Log.e('create vm failed')
-	elif serverStatus == 'error':
-		Log.e('create vm error')
-	else:
-		Log.e('create vm success')
+	
 	
 	return ''
 
@@ -83,9 +86,6 @@ def _doCreate(vm_name, vm_image, vm_flavor, vm_host = None):
 		response = httpClient.getresponse()
 		if int(response.status) != 200:
 			raise Exception
-		#print response.status
-		#print response.reason
-		#print response.getheaders() #获取头信息
 		rspBody = json.loads(response.read())
 		token = rspBody['access']['token']['id']
 	
@@ -108,8 +108,6 @@ def _doCreate(vm_name, vm_image, vm_flavor, vm_host = None):
 		response = httpClient.getresponse()
 		if int(response.status) != 200:
 			raise Exception
-		#print response.reason
-		#print response.getheaders()
 		body = json.loads(response.read())
 		imageID = None
 		for image in body['images']:
@@ -174,7 +172,7 @@ def _doCreate(vm_name, vm_image, vm_flavor, vm_host = None):
 		-H "Content-Type: application/json" 
 		-H "Accept: application/json" 
 		-H "X-Auth-Token: 137a7fa9c13841419b1401e524bc4127" 
-		-d '{"server": {"min_count": 1, "flavorRef": "6", "name": "vm4", "imageRef": "72791    779-456e-4bdf-a95f-4b0f1ec170b1", "max_count": 1}}'
+		-d '{"server": {"min_count": 1, "flavorRef": "6", "name": "vm4", "imageRef": "72791779-456e-4bdf-a95f-4b0f1ec170b1", "max_count": 1}}'
 		"""
 		headers = {'X-Auth-Project-Id':'admin',
 					'User-Agent': 'Python-novaclient',
@@ -221,6 +219,9 @@ def _doCreate(vm_name, vm_image, vm_flavor, vm_host = None):
 			serverStatus = server['server']['status'].lower()
 
 			if serverStatus == 'error' or serverStatus == 'active':
+
+				#获取网卡信息
+
 				Log.d('finish. status is ' + serverStatus)
 				break;
 			else:
