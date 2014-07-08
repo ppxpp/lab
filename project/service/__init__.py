@@ -3,4 +3,4 @@
 
 
 __all__ = ['TaskService', 'VMService', 'OVSService', 
-			'OVSPartService']
+			'OVSPartService', 'PortService', 'LinkService']

@@ -16,6 +16,7 @@ from utils import log as Log
 from service import TaskService as TaskService
 from service import VMService as VMService
 from service import OVSService as OVSService
+from service import PortService as PortService
 
 """
 logging.basicConfig(filename='log/project.log',
@@ -130,7 +131,7 @@ def main():
 	
 	config = CONFIG.getConfig()
 	mTaskService = TaskService.TaskService(config)
-	task['id'] =  mTaskService.addNewTask(task)
+	#task['id'] =  mTaskService.addNewTask(task)
 
 	
 	
@@ -149,15 +150,17 @@ def main():
 	
 	#将虚拟机信息，port信息写入数据库
 	mVMService = VMService.VMService(config)
+	mPortService = PortService.PortService(config)
 	for vm in vmList:
 		vm['vm_status'] = 'vm_status_wait'
 		vm['task_uuid'] = task['task_uuid']
 		#将vm的port信息写入数据库
-
+		if not vm.get('vm_ports') is None:
+			for port in vm['vm_ports']:
+				a;
+				#mPortService.addNewPort(port)
 		#将vm写入数据库
-		print vm
-		vm['id'] = mVMService.addNewVM(vm)
-
+		#vm['id'] = mVMService.addNewVM(vm)
 	#提交虚拟机创建任务，并等待任务执行结束
 	#gmClient = gearman.GearmanClient([config.get('gearman', 'server')])
 	#jobs = []
@@ -181,15 +184,15 @@ def main():
 	#模拟worker在后台进行虚拟机创建，仅用于代码测试
 	for vm in vmList:
 		vm['host_uuid'] = 'host_uuid_uuid_' + str(random.randrange(10, 99))
-		print vm
+		#print vm
 
 
 	#ovs交换机列表
 	ovsList = getOVSList(taskXMLPath)
 
-	print '\nlinks:\n'
-	for link in topologys:
-		print link
+	#print '\nlinks:\n'
+	#for link in topologys:
+	#	print link
 
 
 	#计算实际需要的link
@@ -203,7 +206,6 @@ def main():
 	# 此处考虑第二种情况
 	# 所ovs_part只有一个，则该ovs不需要与计算节点的出口ovs相连，
 	# 若ovs_part数量多于1个，则每个ovs_part都需要与计算节点的出口ovs相连，且vlan tag为task的默认vlan tag
-	mOVSService = OVSService.OVSService(config)
 	for ovs in ovsList:
 		ovs['ovs_status'] = 'ovs_status_wait'
 		ovs['task_uuid'] = task['task_uuid']
@@ -258,11 +260,11 @@ def main():
 					necessaryLinks.append(necessaryLink)
 
 		ovs['ovs_parts'] = ovs_parts
-	for ovs in ovsList:
-		print '+++++++++++++++++++++++++++++++++++++++++++++++++++++++'
-		for part in ovs['ovs_parts']:
-			print part
-	print '========================================================'
+	#for ovs in ovsList:
+	#	print '+++++++++++++++++++++++++++++++++++++++++++++++++++++++'
+	#	for part in ovs['ovs_parts']:
+	#		print part
+	#print '========================================================'
 	#考虑ovs与ovs相连的情况
 	for ovs in ovsList:
 		for link in topologys:
@@ -274,8 +276,8 @@ def main():
 				ovs_2 = findOVSByName(link[1 - ovs_idx]['name'], ovsList)
 				if ovs_2['ovs_name'] == ovs['ovs_name']:
 					continue
-				print '---------------------in loop----------------------------'
-				print link
+				#print '---------------------in loop----------------------------'
+				#print link
 				if isLocateInSameHost(ovs['ovs_parts'], ovs_2['ovs_parts']) == False:
 					hosts_for_ovs = hostForOVS(ovs)
 					hosts_for_ovs_2 = hostForOVS(ovs_2)
@@ -319,10 +321,10 @@ def main():
 						ovs_2['ovs_parts'].append(ovs_part)
 				#在位于相同host上的ovs_part之间增加port和necessaryLink
 				ovsPartTuple = findOVSPartInSameHost(ovs, ovs_2)
-				print '\ntuple[0]:'
-				print ovsPartTuple[0]
-				print '\ntuple[1]:'
-				print ovsPartTuple[1]
+				#print '\ntuple[0]:'
+				#print ovsPartTuple[0]
+				#print '\ntuple[1]:'
+				#print ovsPartTuple[1]
 				if isOVSPartConnected(ovsPartTuple[0], ovsPartTuple[1], necessaryLinks) == True:
 					continue
 				ovs_part = ovsPartTuple[0]
@@ -361,7 +363,13 @@ def main():
 	print '\njson dumps'
 	for ovs in ovsList:
 		print json.dumps(ovs)
-					
+	#将ovs,ovs_part,port,link写入数据库，提交任务并等待任务执行结束	
+	mOVSService = OVSService.OVSService(config)
+	mPortService = PortService.PortService(config)
+	for ovs in ovsList:
+		mOVSService.addNewOVS(ovs)
+		for part in ovs['ovs_parts']:
+			print part
 
 
 
