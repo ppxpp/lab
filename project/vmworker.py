@@ -35,9 +35,21 @@ def createVirtualMachine(gearman_worker, gearman_job):
 	vm_uuid = gearman_job
 	mVMService = VMService.VMService(cfg)
 
-	vm = mVMService.getVMByUUID(vm_uuid)
+	#vm = mVMService.getVMByUUID(vm_uuid)
 	#print vm
-	serverStatus = _doCreate('vm_test', 'TestVM', '6')
+	#创建一个子进程完成任务
+	pid = os.fork()
+	if pid == 0:
+		#子进程
+		#serverStatus = _doCreate('vm_test', 'TestVM', '6')
+		print 'from child' + str(pid)
+		#结束子进程
+		os._exit(0)
+	else:
+		#父进程，等待子进程结束
+		result = os.wait()
+		print result
+
 	if serverStatus is None:
 		Log.e('create vm failed')
 	elif serverStatus == 'error':
