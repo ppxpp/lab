@@ -17,6 +17,7 @@ class OVSService(object):
 		
 		if config is None:
 			raise Exception
+		self.columns = ['id', 'ovs_uuid', 'task_uuid', 'ovs_name', 'delete']
 		self.conn = db.Connection(config.get('database', 'host'),
 							 config.getint('database', 'port'),
 							 config.get('database', 'db'),
@@ -70,6 +71,8 @@ class OVSService(object):
 		sql_column_para = []
 		#-------------------以下代码有SQL注入的风险，注意确保字段名正确
 		for (k, v) in ovs.items():
+			if not k in self.columns:
+				continue
 			if sql_column != '':
 				sql_column = sql_column + ', '
 			sql_column = sql_column + '`' + k +'`'
@@ -93,6 +96,8 @@ class OVSService(object):
 		#-------------------以下代码有SQL注入的风险，注意确保字段名正确
 		for (k, v) in ovs.items():
 			if k != 'ovs_uuid' and k != 'id':
+				if not k in self.columns:
+					continue
 				if sql_set != '':
 					sql_set = sql_set + ', '
 				sql_set = sql_set + '`' + k + '` = %s '

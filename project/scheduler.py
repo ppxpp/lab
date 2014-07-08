@@ -16,7 +16,9 @@ from utils import log as Log
 from service import TaskService as TaskService
 from service import VMService as VMService
 from service import OVSService as OVSService
+from service import OVSPartService as OVSPartService
 from service import PortService as PortService
+from service import LinkService as LinkService
 
 """
 logging.basicConfig(filename='log/project.log',
@@ -131,7 +133,7 @@ def main():
 	
 	config = CONFIG.getConfig()
 	mTaskService = TaskService.TaskService(config)
-	#task['id'] =  mTaskService.addNewTask(task)
+	task['id'] =  mTaskService.addNewTask(task)
 
 	
 	
@@ -157,10 +159,9 @@ def main():
 		#将vm的port信息写入数据库
 		if not vm.get('vm_ports') is None:
 			for port in vm['vm_ports']:
-				a;
-				#mPortService.addNewPort(port)
+				mPortService.addNewPort(port)
 		#将vm写入数据库
-		#vm['id'] = mVMService.addNewVM(vm)
+		vm['id'] = mVMService.addNewVM(vm)
 	#提交虚拟机创建任务，并等待任务执行结束
 	#gmClient = gearman.GearmanClient([config.get('gearman', 'server')])
 	#jobs = []
@@ -237,7 +238,7 @@ def main():
 					port = {}
 					port['port_uuid'] = str(int((time.time())))  + str(random.randrange(100, 1000))
 					port['device_uuid'] = ovs_part['ovs_part_uuid']
-					port['port_type'] = 'type_ovs'
+					port['port_type'] = 'type_ovs_part'
 					port['vlan_tag'] = link[ovs_idx]['vlan_tag']
 					port['used'] = False
 					if ovs_part.get('ovs_part_ports') is None:
@@ -365,12 +366,18 @@ def main():
 		print json.dumps(ovs)
 	#将ovs,ovs_part,port,link写入数据库，提交任务并等待任务执行结束	
 	mOVSService = OVSService.OVSService(config)
-	mPortService = PortService.PortService(config)
+	mOVSPartService = OVSPartService.OVSPartService(config)
+	#mPortService = PortService.PortService(config)
 	for ovs in ovsList:
 		mOVSService.addNewOVS(ovs)
 		for part in ovs['ovs_parts']:
-			print part
-
+			mOVSPartService.addNewOVSPart(part)
+			for port in part['ovs_part_ports']:
+				mPortService.addNewPort(port)
+	
+	mLinkService = LinkService.LinkService(config)
+	for link in necessaryLinks:
+		mLinkService.addNewLink(link)
 
 
 #判断port_uuid是否属于给定的ovs_part
