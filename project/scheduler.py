@@ -125,12 +125,12 @@ def main():
 	#print taskUUID
 	task['task_uuid'] = taskUUID
 	task['task_name'] = 'name'
-	task['owner'] = 'default'
-	task['status'] = 'status_start'
+	task['task_owner'] = 'default'
+	task['task_status'] = 'status_start'
 	
 	config = CONFIG.getConfig()
 	mTaskService = TaskService.TaskService(config)
-	#task['id'] =  mTaskService.addNewTask(task)
+	task['id'] =  mTaskService.addNewTask(task)
 
 	
 	
@@ -153,7 +153,10 @@ def main():
 		vm['vm_status'] = 'vm_status_wait'
 		vm['task_uuid'] = task['task_uuid']
 		#将vm的port信息写入数据库
-		#vm['id'] = mVMService.addNewVM(vm)
+
+		#将vm写入数据库
+		print vm
+		vm['id'] = mVMService.addNewVM(vm)
 
 	#提交虚拟机创建任务，并等待任务执行结束
 	#gmClient = gearman.GearmanClient([config.get('gearman', 'server')])

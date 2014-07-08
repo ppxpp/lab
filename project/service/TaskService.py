@@ -17,6 +17,7 @@ class TaskService(object):
 		
 		if config is None:
 			raise Exception
+		self.columns = ['id', 'task_name', 'task_uuid', 'task_owner', 'task_status', 'file_path', 'delete']
 		self.conn = db.Connection(config.get('database', 'host'),
 							 config.getint('database', 'port'),
 							 config.get('database', 'db'),
@@ -69,15 +70,18 @@ class TaskService(object):
 		sql_column = ''
 		sql_values = ''
 		sql_column_para = []
+		#-------------------以下代码有SQL注入的风险，注意确保字段名正确
 		for (k, v) in task.items():
-			if sql_column != '':
-				sql_column = sql_column + ', '
-			sql_column = sql_column + '`' + k +'`'
-			if sql_values != '':
-				sql_values = sql_values + ', '
-			sql_values = sql_values + '%s'
-			sql_column_para.append(v)
+			if k in self.columns:
+				if sql_column != '':
+					sql_column = sql_column + ', '
+				sql_column = sql_column + '`' + k +'`'
+				if sql_values != '':
+					sql_values = sql_values + ', '
+				sql_values = sql_values + '%s'
+				sql_column_para.append(v)
 		sql = sql + sql_column + ') values (' + sql_values + ')'
+		#-------------------------------------------------------------
 		self.conn.execute(sql, sql_column_para)
 		#获取刚插入的记录的id号
 		return self.getTaskByUUID(task['task_uuid'], {'id':'id'})['id']

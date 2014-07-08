@@ -17,6 +17,7 @@ class VMService(object):
 		
 		if config is None:
 			raise Exception
+		self.columns = ['id', 'vm_uuid', 'task_uuid', 'host_uuid', 'vm_name', 'vm_image', 'vm_flavor', 'vm_status', 'delete']
 		self.conn = db.Connection(config.get('database', 'host'),
 							 config.getint('database', 'port'),
 							 config.get('database', 'db'),
@@ -70,13 +71,15 @@ class VMService(object):
 		sql_column_para = []
 		#-------------------以下代码有SQL注入的风险，注意确保字段名正确
 		for (k, v) in vm.items():
-			if sql_column != '':
-				sql_column = sql_column + ', '
-			sql_column = sql_column + '`' + k +'`'
-			if sql_values != '':
-				sql_values = sql_values + ', '
-			sql_values = sql_values + '%s'
-			sql_column_para.append(v)
+			
+			if k in self.columns:
+				if sql_column != '':
+					sql_column = sql_column + ', '
+				sql_column = sql_column + '`' + k +'`'
+				if sql_values != '':
+					sql_values = sql_values + ', '
+				sql_values = sql_values + '%s'
+				sql_column_para.append(v)
 		sql = sql + sql_column + ') values (' + sql_values + ')'
 		#-------------------------------------------------------------
 		self.conn.execute(sql, sql_column_para)
